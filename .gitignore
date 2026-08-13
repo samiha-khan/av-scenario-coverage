@@ -57,3 +57,7 @@ dmypy.json
 
 # OS files
 .DS_Store
+
+# Claude Code
+.claude/
+CLAUDE.md
