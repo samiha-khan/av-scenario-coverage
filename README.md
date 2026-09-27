@@ -1,70 +1,79 @@
 # av-scenario-coverage
 
-Synthetic driving scenario generation and test coverage analysis for autonomy validation.
+A checklist for self-driving tests.
 
-Scenarios are represented as structured parameter vectors, not images or simulation runs, so the tool builds and runs fast with no dataset dependency. It covers the parts of validation that sit downstream of a model: given a set of test scenarios, which parameter combinations are undertested, which untested scenarios are worth running next, and which scenarios that used to pass have started failing.
+A car can meet rain, night, a highway, a cyclist, and a merge in thousands of combinations. Testing rain on its own, and night on its own, still leaves rain at night untested. This project keeps that checklist and answers four questions:
 
-## What it does
+1. Which situations have we already tried?
+2. Which combinations did we skip?
+3. Which skipped test is the risky one to run next?
+4. Which tests used to pass and now fail?
 
-- Generates scenario vectors from a fixed schema (weather, lighting, agent mix, maneuver type, road type, ego speed)
-- Measures combinatorial pairwise coverage across the scenario set
-- Generates new candidate scenarios targeted at undercovered parameter combinations (fuzzing)
-- Scores untested scenarios by rarity and historical failure rate, to prioritize what to run next
-- Tracks pass/fail outcomes per scenario over time in SQLite, and flags scenarios that regressed
-- Gates CI on a pairwise coverage baseline
+Each test is six plain facts, not a video and not a drive in a simulator. That is why it runs on a laptop in about a second.
 
-## Schema
+| Fact | Choices |
+| --- | --- |
+| Weather | clear, rain, fog, snow |
+| Light | day, dusk, night |
+| Who else is on the road | mostly cars, a mix of people and bikes, lots of cyclists, lots of pedestrians, an emergency vehicle |
+| What the car is doing | change lanes, turn, merge, stop |
+| Where | highway, city street, residential street |
+| Speed | low, medium, high |
 
-weather           clear, rain, fog, snow
-lighting          day, dusk, night
-agent_mix         mostly_vehicles, mixed_vru, high_cyclist, high_pedestrian, emergency_vehicle_present
-maneuver_type     lane_change, turn, merge, stop
-road_type         highway, urban, residential
-ego_speed_bucket  low, medium, high
+Six facts produce 200 pairs, such as "fog + night" or "snow + highway." The checklist counts pairs, because a pair is where the hole usually hides.
 
-6 fields, 200 pairwise value combinations total.
+## Try the checklist
 
-## Failure model
+```bash
+python3 - <<'PY'
+from coverage import coverage_report
+from generator import generate_scenarios
 
-There's no real classifier behind this project, on purpose, it's decoupled from perception-validation-suite so the coverage and prioritization logic can be tested against known ground truth instead of a black box.
+scenarios = generate_scenarios(80, seed=7)
+report = coverage_report(scenarios)
+print(
+    f"{report['covered_combinations']} of {report['total_combinations']} pairs covered"
+)
+print("missing:", report["zero_coverage"])
+PY
+```
 
-Failure is a synthetic function: a fixed table of parameter combinations flagged as inherently hard (night + fog + high_cyclist + merge, snow + highway + high speed, and four others), each with a base failure probability, plus gaussian noise so outcomes aren't deterministic. Scenarios that don't match any hard combination default to a 2% baseline failure rate.
+With seed 7, 80 random situations cover 197 of 200 pairs. Three pairs never appear, including fog with lots of pedestrians, and snow during a lane change.
 
-## Coverage and fuzzing
+Ask for 20 new situations aimed at those holes and the list closes to 200 of 200. The same 80 situations, run twice, produce 10 that passed the first time and failed the second. Those 10 are the ones to look at before trusting a new version of the software.
 
-Coverage is measured pairwise across all 15 field pairs (C(6,2)), not per field, since single-field coverage hides gaps like "we've tested night driving and we've tested fog driving, but never night and fog together."
-
-Running the full pipeline on 80 randomly generated scenarios: 199/200 pairwise combinations covered (99.5%), 1 combination completely untested, 6 undertested. Fuzzing against the gaps generated 20 candidate scenarios and closed coverage to 100%.
-
-CI gates on a fixed reference set of 50 scenarios (seed 1234), which lands at 95.5% pairwise coverage, a build fails if a change drops that number.
-
-## Prioritization
-
-Score = rarity of the scenario's parameter combination in the existing set x historical failure rate for scenarios sharing those combinations. No learned model, this is a heuristic baseline that stays explainable.
-
-If a scenario's combination has no run history yet, historical failure rate falls back to the synthetic model's base probability rather than assuming 0.
-
-## Regression tracking
-
-Every run of every scenario gets a row in SQLite, keyed on a hash of the scenario vector. Two queries:
-
-- find_regressions: any scenario that passed at some point and later failed
-- most_recent_regressions: stricter, only scenarios whose latest run failed with at least one earlier pass on record, this is what CI would gate a specific commit on
-
-Across a two-run test (80 scenarios, evaluated twice), 4 scenarios flipped from pass to fail.
-
-## Tests
-
-69 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
-
+```bash
 pytest
+python3 check_coverage.py
+```
 
-## Structure
+`pytest` runs 69 tests. `check_coverage.py` checks a fixed set of 50 situations (seed 1234). That set covers 95.5% of the pairs. The check fails if a code change drops that number.
 
-models.py           scenario schema and hashing
-generator.py         scenario generation, weighted or uniform sampling
-coverage.py          pairwise coverage measurement and fuzzing
-failure_model.py      synthetic ground truth failure function
-prioritization.py     rarity x failure rate scoring
-regression.py        SQLite run tracking and regression queries
-check_coverage.py     CI coverage gate against a tracked baseline
+## Where pass and fail come from
+
+This repository does not include a camera model. Pass and fail come from a short written list of hard situations: night and fog with many cyclists merging, snow on a highway at high speed, and four others. Hard situations fail more often. Everything else fails about 2% of the time, with a little randomness, so the same test can flip between runs.
+
+The checklist can then be tested against known answers. A separate project holds the perception model.
+
+## How the four questions are scored
+
+**Coverage.** Every pair of facts is counted. A pair seen fewer than 2 times is thin. A pair seen 0 times is a hole.
+
+**Fill the holes.** New tests are built by copying a situation you already have and rewriting the two facts that were missing.
+
+**What to run next.** Score = how rare the pair is × how often similar tests have failed. A rare situation with no history yet uses the written failure rate, so a brand-new hard case is not treated as safe.
+
+**Regressions.** Every result is saved in a small SQLite database, one row per run. A regression is a test that passed at least once and failed later. The stricter list is tests whose latest run failed after an earlier pass. That stricter list is what a release check would block on.
+
+## Files
+
+| File | Role |
+| --- | --- |
+| `models.py` | The six facts, and a fingerprint for each situation |
+| `generator.py` | Builds situations, evenly or with weights |
+| `coverage.py` | Counts pairs and fills holes |
+| `failure_model.py` | The written pass/fail table |
+| `prioritization.py` | Ranks the next tests |
+| `regression.py` | Saves runs and finds tests that used to pass |
+| `check_coverage.py` | Fails the build if pair coverage drops |
+| `coverage_baseline.json` | The 95.5% line the check compares against |
