@@ -410,7 +410,7 @@ button {
 
 .polaroid {
   margin: 0;
-  width: clamp(140px, 28vw, 210px);
+  width: clamp(150px, 30vw, 240px);
   padding: 10px 10px 30px;
   background: #fffaf3;
   border-radius: 6px;
@@ -421,6 +421,16 @@ button {
 
 .polaroid:hover {
   transform: rotate(0deg) scale(1.04);
+}
+
+.polaroid figcaption {
+  margin-top: 10px;
+  margin-bottom: -16px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  color: var(--ink);
+  text-align: center;
 }
 
 .photos.single .polaroid {
@@ -435,8 +445,9 @@ button {
 .polaroid img {
   display: block;
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
+  object-position: 50% 40%;
   border-radius: 2px;
   background: #e9dccd;
 }
@@ -845,6 +856,32 @@ button {
   text-align: center;
   transform: rotateY(180deg);
   box-shadow: 0 24px 50px -26px rgba(0, 0, 0, 0.8);
+}
+
+.reason.has-photo {
+  min-height: 240px;
+}
+
+.reason.has-photo .reason-back {
+  padding: 10px 10px 12px;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.reason.has-photo .reason-back img {
+  display: block;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  object-fit: cover;
+  object-position: 50% 30%;
+  border-radius: 10px;
+  background: #e9dccd;
+}
+
+.reason-caption {
+  flex: 0 0 auto;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
 }
 
 .reason.open .reason-front {

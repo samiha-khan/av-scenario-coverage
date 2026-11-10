@@ -15,17 +15,21 @@ const BIRTHDAY_CONFIG = {
 
   // Optional photos. Drop image files into birthday-site/photos/ and list them
   // here like "photos/us.jpg", or paste full https:// image links.
-  // Leave the list empty ([]) and the photo strip simply won't appear.
+  // Each entry can be just a path, or { src, caption } to write something
+  // under the polaroid. Leave the list empty ([]) to hide the photo strip.
   photos: [
-    "photos/utshab-birthday-cake.jpg",
+    { src: "photos/utshab-birthday-cake.jpg", caption: "birthday boy" },
+    { src: "photos/us-gym-selfie.jpg", caption: "gym buddies" },
     // "photos/us-at-the-park.jpg",
-    // "https://example.com/our-trip.jpg",
+    // { src: "https://example.com/our-trip.jpg", caption: "that trip" },
   ],
 
   // The "reasons I love you" cards. Mix sweet and silly — add, remove, or
-  // reorder as many as you like.
+  // reorder as many as you like. A reason can be plain text, or
+  // { text, photo } to flip open onto a photo with the text as its caption.
   reasons: [
     "You make even a random Tuesday feel like a tiny holiday.",
+    { text: "Too kissable.", photo: "photos/utshab-library.jpg" },
     "You laugh at my jokes. Even the bad ones. Especially the bad ones.",
     "You'd share your fries with me. That's basically a legally binding commitment.",
     "Your hugs are my favorite place in the whole city.",
@@ -144,19 +148,26 @@ const BIRTHDAY_CONFIG = {
   );
 
   const photosEl = $("photos");
-  const photos = (cfg.photos || []).filter(Boolean);
+  const photos = (cfg.photos || [])
+    .map((p) => (typeof p === "string" ? { src: p, caption: "" } : p))
+    .filter((p) => p && p.src);
   if (photos.length) {
     photosEl.hidden = false;
     photosEl.classList.toggle("single", photos.length === 1);
-    photos.forEach((src, i) => {
+    photos.forEach(({ src, caption }, i) => {
       const fig = document.createElement("figure");
       fig.className = "polaroid";
       fig.style.setProperty("--tilt", `${(i % 2 ? 1 : -1) * (2 + (i % 3))}deg`);
       const img = document.createElement("img");
       img.src = src;
-      img.alt = "";
+      img.alt = caption || "";
       img.loading = "lazy";
       fig.appendChild(img);
+      if (caption) {
+        const cap = document.createElement("figcaption");
+        cap.textContent = caption;
+        fig.appendChild(cap);
+      }
       photosEl.appendChild(fig);
     });
   }
@@ -330,10 +341,11 @@ const BIRTHDAY_CONFIG = {
   /* ---------- reasons ---------- */
   const reasonsEl = $("reasons");
   const stickers = ["💌", "🍟", "🍕", "🫶", "🎈", "🌙", "☕", "🧸", "🌟", "🎂"];
-  (cfg.reasons || []).forEach((text, i) => {
+  (cfg.reasons || []).forEach((reason, i) => {
+    const { text, photo } = typeof reason === "string" ? { text: reason } : reason;
     const card = document.createElement("button");
     card.type = "button";
-    card.className = "reason";
+    card.className = "reason" + (photo ? " has-photo" : "");
     card.setAttribute("aria-expanded", "false");
     card.style.setProperty("--tilt", `${((i % 3) - 1) * 1.6}deg`);
     const front = document.createElement("span");
@@ -341,7 +353,18 @@ const BIRTHDAY_CONFIG = {
     front.innerHTML = `<span class="reason-sticker" aria-hidden="true">${stickers[i % stickers.length]}</span><span class="reason-num">No. ${i + 1}</span>`;
     const back = document.createElement("span");
     back.className = "reason-back";
-    back.textContent = text;
+    if (photo) {
+      const img = document.createElement("img");
+      img.src = photo;
+      img.alt = "";
+      img.loading = "lazy";
+      const cap = document.createElement("span");
+      cap.className = "reason-caption";
+      cap.textContent = text;
+      back.append(img, cap);
+    } else {
+      back.textContent = text;
+    }
     card.append(front, back);
     card.addEventListener("click", () => {
       const open = card.classList.toggle("open");
