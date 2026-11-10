@@ -1,11 +1,11 @@
-name: Deploy birthday site
+name: Deploy fun websites
 
 on:
   push:
     branches: [main]
     paths:
-      - "birthday-site/**"
-      - ".github/workflows/deploy-birthday-site.yml"
+      - "fun-websites/**"
+      - ".github/workflows/deploy-fun-websites.yml"
   workflow_dispatch:
 
 permissions:
@@ -28,6 +28,6 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: birthday-site
+          path: fun-websites/utshab-birthday
       - id: deployment
         uses: actions/deploy-pages@v4

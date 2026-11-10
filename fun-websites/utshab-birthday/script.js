@@ -13,7 +13,7 @@ const BIRTHDAY_CONFIG = {
   // Sign-off shown under the message. Leave "" to hide it.
   signoff: "Hoping to celebrate this day together for eternity.",
 
-  // Optional photos. Drop image files into birthday-site/photos/ and list them
+  // Optional photos. Drop image files into the photos/ folder next to this file and list them
   // here like "photos/us.jpg", or paste full https:// image links.
   // Each entry can be just a path, or { src, caption } to write something
   // under the polaroid. Leave the list empty ([]) to hide the photo strip.
