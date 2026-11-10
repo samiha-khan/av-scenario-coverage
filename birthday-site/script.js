@@ -19,8 +19,9 @@ const BIRTHDAY_CONFIG = {
   // under the polaroid. Leave the list empty ([]) to hide the photo strip.
   photos: [
     { src: "photos/utshab-birthday-cake.jpg", caption: "birthday boy" },
+    { src: "photos/utshab-library.jpg", caption: "super cute and kissable" },
     { src: "photos/us-central-park.jpg", caption: "matching, on purpose" },
-    { src: "photos/us-gym-selfie.jpg", caption: "gym buddies" },
+    { src: "photos/us-gym-selfie.jpg", caption: "a random click" },
     // "photos/us-at-the-park.jpg",
     // { src: "https://example.com/our-trip.jpg", caption: "that trip" },
   ],
@@ -30,13 +31,21 @@ const BIRTHDAY_CONFIG = {
   // { text, photo } to flip open onto a photo with the text as its caption.
   reasons: [
     "You make even a random Tuesday feel like a tiny holiday.",
-    { text: "Too kissable.", photo: "photos/utshab-library.jpg" },
+    "Too kissable. Frankly, it's a problem.",
+    // Example of a card that flips open onto a photo:
+    // { text: "Too kissable.", photo: "photos/utshab-library.jpg" },
     "You laugh at my jokes. Even the bad ones. Especially the bad ones.",
     "You'd share your fries with me. That's basically a legally binding commitment.",
     "Your hugs are my favorite place in the whole city.",
     "You somehow know which pizza slice I want before I do.",
     "You're my favorite person. It's not even close.",
   ],
+
+  // Start the birthday with a sealed envelope he taps to open. The letter
+  // inside shows the message and sign-off above. Set to false to skip it.
+  openAsLetter: true,
+  letterGreeting: "Dear Utshab,",   // first line inside the letter
+  letterFrom: "yours, always",      // last line inside the letter ("" to hide)
 
   // What the cake says after he blows out the candles.
   wishMessage: "Wish made. I won't ask what it was. (I will absolutely ask.)",
@@ -155,22 +164,93 @@ const BIRTHDAY_CONFIG = {
   if (photos.length) {
     photosEl.hidden = false;
     photosEl.classList.toggle("single", photos.length === 1);
+
+    const track = document.createElement("div");
+    track.className = "carousel-track";
+    track.setAttribute("aria-label", "Photos");
     photos.forEach(({ src, caption }, i) => {
+      const slide = document.createElement("div");
+      slide.className = "slide";
       const fig = document.createElement("figure");
       fig.className = "polaroid";
-      fig.style.setProperty("--tilt", `${(i % 2 ? 1 : -1) * (2 + (i % 3))}deg`);
+      fig.style.setProperty("--tilt", `${(i % 2 ? 1 : -1) * 2}deg`);
       const img = document.createElement("img");
       img.src = src;
       img.alt = caption || "";
-      img.loading = "lazy";
+      img.loading = i === 0 ? "eager" : "lazy";
+      img.draggable = false;
       fig.appendChild(img);
       if (caption) {
         const cap = document.createElement("figcaption");
         cap.textContent = caption;
         fig.appendChild(cap);
       }
-      photosEl.appendChild(fig);
+      slide.appendChild(fig);
+      track.appendChild(slide);
     });
+    photosEl.appendChild(track);
+
+    if (photos.length > 1) {
+      const dots = document.createElement("div");
+      dots.className = "carousel-dots";
+      photos.forEach((_, i) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "dot";
+        dot.setAttribute("aria-label", `Photo ${i + 1} of ${photos.length}`);
+        dot.addEventListener("click", () => goTo(i, true));
+        dots.appendChild(dot);
+      });
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "carousel-arrow prev";
+      prev.setAttribute("aria-label", "Previous photo");
+      prev.innerHTML = "&#8249;";
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "carousel-arrow next";
+      next.setAttribute("aria-label", "Next photo");
+      next.innerHTML = "&#8250;";
+      prev.addEventListener("click", () => goTo(current - 1, true));
+      next.addEventListener("click", () => goTo(current + 1, true));
+      photosEl.append(prev, next, dots);
+
+      let current = 0;
+      let autoTimer = null;
+      const dotEls = [...dots.children];
+
+      const setActive = (i) => {
+        current = i;
+        dotEls.forEach((d, j) => d.classList.toggle("active", j === i));
+      };
+
+      function goTo(i, byUser) {
+        const n = photos.length;
+        const idx = ((i % n) + n) % n;
+        track.scrollTo({ left: idx * track.clientWidth, behavior: reducedMotion ? "auto" : "smooth" });
+        setActive(idx);
+        if (byUser) pauseAuto();
+      }
+
+      track.addEventListener("scroll", () => {
+        const idx = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        if (idx !== current) setActive(Math.min(photos.length - 1, Math.max(0, idx)));
+      }, { passive: true });
+
+      function startAuto() {
+        if (reducedMotion) return;
+        clearInterval(autoTimer);
+        autoTimer = setInterval(() => goTo(current + 1, false), 4500);
+      }
+      function pauseAuto() {
+        clearInterval(autoTimer);
+        autoTimer = setTimeout(startAuto, 12000);
+      }
+      track.addEventListener("pointerdown", pauseAuto, { passive: true });
+      track.addEventListener("touchstart", pauseAuto, { passive: true });
+      setActive(0);
+      startAuto();
+    }
   }
 
   /* ---------- balloons ---------- */
@@ -464,6 +544,44 @@ const BIRTHDAY_CONFIG = {
     burst(120, (r.left + r.width / 2) / innerWidth, (r.top + r.height / 2) / innerHeight, 0.7);
   });
 
+  /* ---------- the letter ---------- */
+  const letterOverlay = $("letter-overlay");
+  const envelope = $("envelope");
+  let letterOpened = false;
+
+  $("letter-to").textContent = cfg.letterGreeting || (name ? `Dear ${name},` : "Dear you,");
+  $("letter-from").textContent = cfg.letterFrom || "";
+  $("letter-body").replaceChildren(
+    ...[cfg.message, cfg.signoff]
+      .filter((s) => s && s.trim())
+      .map((text) => {
+        const p = document.createElement("p");
+        p.textContent = text.trim();
+        return p;
+      })
+  );
+
+  function showLetter(onDone) {
+    letterOverlay.hidden = false;
+    document.body.classList.add("reading-letter");
+    const open = () => {
+      if (letterOpened) return;
+      letterOpened = true;
+      envelope.classList.add("open");
+      $("letter-hint").textContent = "";
+      const delay = reducedMotion ? 600 : 3400;
+      setTimeout(() => {
+        letterOverlay.classList.add("away");
+        document.body.classList.remove("reading-letter");
+        setTimeout(() => {
+          letterOverlay.hidden = true;
+          onDone();
+        }, reducedMotion ? 50 : 700);
+      }, delay);
+    };
+    envelope.addEventListener("click", open, { once: true });
+  }
+
   /* ---------- views ---------- */
   const countdownView = $("countdown-view");
   const celebrationView = $("celebration-view");
@@ -484,17 +602,27 @@ const BIRTHDAY_CONFIG = {
     countdownTimer = setInterval(updateCountdown, 250);
   }
 
+  function revealCelebration() {
+    celebrationView.hidden = false;
+    extras.hidden = false;
+    document.body.classList.add("celebrating");
+    spawnBalloons(14);
+    startCelebrationConfetti();
+  }
+
   function showCelebration({ animate }) {
     if (currentView === "celebration") return;
     currentView = "celebration";
     clearInterval(countdownTimer);
     countdownView.hidden = true;
-    celebrationView.hidden = false;
-    extras.hidden = false;
-    document.body.classList.add("celebrating");
-    spawnBalloons(14);
-    if (animate) startCelebrationConfetti();
-    else setTimeout(startCelebrationConfetti, 300);
+    if (cfg.openAsLetter && !params.has("noletter")) {
+      spawnBalloons(0);
+      showLetter(revealCelebration);
+    } else if (animate) {
+      revealCelebration();
+    } else {
+      setTimeout(revealCelebration, 300);
+    }
   }
 
   const pad = (n) => String(n).padStart(2, "0");

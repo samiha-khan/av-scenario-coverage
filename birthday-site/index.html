@@ -167,10 +167,26 @@
       </section>
 
       <footer class="footer">
-        <p>Made with love, caffeine, and an unreasonable amount of confetti. 🗽</p>
+        <p>Made with love, hot chocolate, and an unreasonable amount of confetti. 🗽</p>
       </footer>
     </div>
   </main>
+
+  <!-- Sealed letter shown before the celebration -->
+  <div class="letter-overlay" id="letter-overlay" hidden>
+    <button class="envelope" id="envelope" type="button" aria-label="Open the letter">
+      <div class="envelope-back"></div>
+      <div class="letter" id="letter">
+        <p class="letter-to" id="letter-to">Dear you,</p>
+        <div class="letter-body" id="letter-body"></div>
+        <p class="letter-from" id="letter-from"></p>
+      </div>
+      <div class="envelope-front"></div>
+      <div class="envelope-flap"></div>
+      <div class="seal" aria-hidden="true">♥</div>
+    </button>
+    <p class="letter-hint" id="letter-hint">You've got mail. Tap to open.</p>
+  </div>
 
   <div class="hug-overlay" id="hug-overlay" aria-hidden="true">
     <div class="hug-emoji">🤗</div>
