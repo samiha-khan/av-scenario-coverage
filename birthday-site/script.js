@@ -17,6 +17,7 @@ const BIRTHDAY_CONFIG = {
   // here like "photos/us.jpg", or paste full https:// image links.
   // Leave the list empty ([]) and the photo strip simply won't appear.
   photos: [
+    "photos/utshab-birthday-cake.jpg",
     // "photos/us-at-the-park.jpg",
     // "https://example.com/our-trip.jpg",
   ],
@@ -146,6 +147,7 @@ const BIRTHDAY_CONFIG = {
   const photos = (cfg.photos || []).filter(Boolean);
   if (photos.length) {
     photosEl.hidden = false;
+    photosEl.classList.toggle("single", photos.length === 1);
     photos.forEach((src, i) => {
       const fig = document.createElement("figure");
       fig.className = "polaroid";

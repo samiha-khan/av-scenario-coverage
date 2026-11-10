@@ -423,6 +423,15 @@ button {
   transform: rotate(0deg) scale(1.04);
 }
 
+.photos.single .polaroid {
+  width: clamp(220px, 46vw, 300px);
+  padding-bottom: 36px;
+}
+
+.photos.single .polaroid img {
+  aspect-ratio: 4 / 5;
+}
+
 .polaroid img {
   display: block;
   width: 100%;
