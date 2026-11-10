@@ -30,15 +30,12 @@ const BIRTHDAY_CONFIG = {
   // reorder as many as you like. A reason can be plain text, or
   // { text, photo } to flip open onto a photo with the text as its caption.
   reasons: [
-    "You make even a random Tuesday feel like a tiny holiday.",
-    "Too kissable. Frankly, it's a problem.",
+    "Being with you itself is a festival.",
+    "Your hugs are my favorite place in the whole world.",
+    "You always manage to make me happy.",
+    "You're my favorite person. It's not even close.",
     // Example of a card that flips open onto a photo:
     // { text: "Too kissable.", photo: "photos/utshab-library.jpg" },
-    "You laugh at my jokes. Even the bad ones. Especially the bad ones.",
-    "You'd share your fries with me. That's basically a legally binding commitment.",
-    "Your hugs are my favorite place in the whole city.",
-    "You somehow know which pizza slice I want before I do.",
-    "You're my favorite person. It's not even close.",
   ],
 
   // Start the birthday with a sealed envelope he taps to open. The letter
