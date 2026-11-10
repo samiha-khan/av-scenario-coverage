@@ -19,6 +19,7 @@ const BIRTHDAY_CONFIG = {
   // under the polaroid. Leave the list empty ([]) to hide the photo strip.
   photos: [
     { src: "photos/utshab-birthday-cake.jpg", caption: "birthday boy" },
+    { src: "photos/us-central-park.jpg", caption: "matching, on purpose" },
     { src: "photos/us-gym-selfie.jpg", caption: "gym buddies" },
     // "photos/us-at-the-park.jpg",
     // { src: "https://example.com/our-trip.jpg", caption: "that trip" },
