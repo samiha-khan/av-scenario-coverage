@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Happy Birthday, Utshab!</title>
+  <meta name="description" content="A little birthday surprise, counting down to midnight in New York." />
+  <meta name="theme-color" content="#1b0b1e" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css?v=5" />
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="stars stars-a"></div>
+    <div class="stars stars-b"></div>
+    <div class="moon"></div>
+  </div>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div id="balloons" aria-hidden="true"></div>
+
+  <main id="app">
+    <section class="hero" id="hero">
+      <!-- ============ COUNTDOWN VIEW ============ -->
+      <div id="countdown-view" class="view" hidden>
+        <div class="mascot wiggle" aria-hidden="true">🎁</div>
+        <p class="eyebrow">No peeking. Almost time.</p>
+        <h1 class="title">
+          Counting down to <span class="accent" id="countdown-name">your</span> birthday
+        </h1>
+        <div class="timer" role="timer" aria-label="Time until midnight on November 10 in New York">
+          <div class="unit"><span class="num" id="days">00</span><span class="label">days</span></div>
+          <div class="unit"><span class="num" id="hours">00</span><span class="label">hours</span></div>
+          <div class="unit"><span class="num" id="minutes">00</span><span class="label">minutes</span></div>
+          <div class="unit"><span class="num" id="seconds">00</span><span class="label">seconds</span></div>
+        </div>
+        <p class="sub">until midnight on <span id="countdown-date">November 10</span> in New York City</p>
+        <p class="ny-clock">It's <span id="ny-time">—</span> in New York right now. The cake is still in the oven. 🎂</p>
+      </div>
+
+      <!-- ============ CELEBRATION VIEW ============ -->
+      <div id="celebration-view" class="view" hidden>
+        <div class="party-crew" aria-hidden="true">
+          <span>🎈</span><span>🎂</span><span>🥳</span><span>🗽</span><span>🍕</span>
+        </div>
+        <p class="eyebrow" id="celebration-eyebrow">November 10 &middot; New York City</p>
+        <h1 class="title big" id="headline">Happy Birthday, love!</h1>
+        <div class="message" id="message"></div>
+        <div class="photos" id="photos" hidden></div>
+        <p class="signoff" id="signoff"></p>
+        <a class="scroll-cue" href="#cake-section">there's cake below <span aria-hidden="true">↓</span></a>
+      </div>
+
+      <div class="skyline" aria-hidden="true">
+        <svg viewBox="0 0 1440 240" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="win" width="12" height="18" patternUnits="userSpaceOnUse">
+              <rect x="4" y="6" width="3" height="5" fill="#f6c667" />
+            </pattern>
+            <g id="city">
+              <rect x="0" y="160" width="58" height="80" />
+              <rect x="58" y="128" width="40" height="112" />
+              <rect x="98" y="172" width="70" height="68" />
+              <rect x="168" y="142" width="30" height="98" />
+              <rect x="198" y="158" width="44" height="82" />
+              <!-- One World Trade Center -->
+              <polygon points="248,240 248,78 276,46 304,78 304,240" />
+              <rect x="274" y="8" width="4" height="40" />
+              <rect x="304" y="150" width="48" height="90" />
+              <rect x="352" y="168" width="80" height="72" />
+              <rect x="432" y="118" width="34" height="122" />
+              <rect x="466" y="156" width="46" height="84" />
+              <rect x="512" y="176" width="30" height="64" />
+              <!-- Empire State Building -->
+              <rect x="542" y="126" width="82" height="114" />
+              <rect x="556" y="78" width="54" height="50" />
+              <rect x="570" y="52" width="26" height="28" />
+              <rect x="579" y="30" width="8" height="24" />
+              <rect x="581" y="2" width="4" height="30" />
+              <rect x="624" y="158" width="42" height="82" />
+              <rect x="666" y="136" width="60" height="104" />
+              <rect x="726" y="176" width="50" height="64" />
+              <rect x="776" y="150" width="26" height="90" />
+              <!-- Chrysler Building -->
+              <rect x="802" y="118" width="60" height="122" />
+              <polygon points="802,118 808,104 856,104 862,118" />
+              <polygon points="808,104 814,90 850,90 856,104" />
+              <polygon points="814,90 820,76 844,76 850,90" />
+              <polygon points="820,76 832,38 844,76" />
+              <rect x="830" y="12" width="4" height="30" />
+              <rect x="862" y="152" width="50" height="88" />
+              <rect x="912" y="132" width="40" height="108" />
+              <rect x="952" y="166" width="70" height="74" />
+              <rect x="1022" y="146" width="30" height="94" />
+              <rect x="1052" y="120" width="56" height="120" />
+              <rect x="1108" y="160" width="46" height="80" />
+              <rect x="1154" y="136" width="60" height="104" />
+              <rect x="1214" y="172" width="50" height="68" />
+              <rect x="1264" y="148" width="40" height="92" />
+              <rect x="1304" y="124" width="70" height="116" />
+              <rect x="1374" y="156" width="66" height="84" />
+            </g>
+          </defs>
+          <use href="#city" fill="#120714" />
+          <use href="#city" fill="url(#win)" opacity="0.55" />
+        </svg>
+      </div>
+    </section>
+
+    <!-- ============ CELEBRATION EXTRAS (only shown on the birthday) ============ -->
+    <div id="extras" hidden>
+      <section class="block" id="cake-section">
+        <p class="eyebrow">Step one</p>
+        <h2 class="title h2">Make a wish</h2>
+        <p class="lede">Tap the candles to blow them out. Yes, through the screen. I believe in you.</p>
+
+        <div class="cake-stage">
+          <button class="cake" id="cake" type="button" aria-label="Blow out the candles">
+            <div class="candles" id="candles"></div>
+            <div class="tier tier-top"><div class="drip"></div></div>
+            <div class="tier tier-mid"><div class="drip"></div></div>
+            <div class="tier tier-bottom"><div class="drip"></div></div>
+            <div class="plate"></div>
+          </button>
+        </div>
+
+        <p class="cake-caption" id="cake-caption" aria-live="polite">The candles are lit. Go on.</p>
+        <button class="btn ghost" id="relight" type="button" hidden>Relight the candles</button>
+      </section>
+
+      <section class="block" id="reasons-section">
+        <p class="eyebrow">Step two</p>
+        <h2 class="title h2">A few reasons I love you</h2>
+        <p class="lede">Tap a card. Some are sweet. Some are facts.</p>
+        <div class="reasons" id="reasons"></div>
+      </section>
+
+      <section class="block" id="fun-section">
+        <p class="eyebrow">Step three</p>
+        <h2 class="title h2">Birthday services</h2>
+
+        <div class="fun-grid">
+          <div class="fun-card">
+            <div class="fun-emoji" aria-hidden="true">🤗</div>
+            <h3>Hug dispenser</h3>
+            <p>Unlimited supply. No refunds, you can't give them back.</p>
+            <button class="btn primary" id="hug-btn" type="button">Press for a hug</button>
+            <p class="fun-note" id="hug-count"></p>
+          </div>
+
+          <div class="fun-card" id="quiz-card">
+            <div class="fun-emoji" aria-hidden="true">🧐</div>
+            <h3>Quick quiz</h3>
+            <p id="quiz-question">Am I the best girlfriend?</p>
+            <div class="quiz-buttons" id="quiz-buttons">
+              <button class="btn primary" id="yes-btn" type="button">Yes</button>
+              <button class="btn ghost dodger" id="no-btn" type="button">No</button>
+            </div>
+            <p class="fun-note" id="quiz-note"></p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>Made with love, hot chocolate, and an unreasonable amount of confetti. 🗽</p>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Sealed letter shown before the celebration -->
+  <div class="letter-overlay" id="letter-overlay" hidden>
+    <button class="envelope" id="envelope" type="button" aria-label="Open the letter">
+      <div class="envelope-back"></div>
+      <div class="letter" id="letter">
+        <p class="letter-to" id="letter-to">Dear you,</p>
+        <div class="letter-body" id="letter-body"></div>
+        <p class="letter-from" id="letter-from"></p>
+      </div>
+      <div class="envelope-front"></div>
+      <div class="envelope-flap"></div>
+      <div class="seal" aria-hidden="true">♥</div>
+    </button>
+    <p class="letter-hint" id="letter-hint">You've got mail. Tap to open.</p>
+  </div>
+
+  <div class="hug-overlay" id="hug-overlay" aria-hidden="true">
+    <div class="hug-emoji">🤗</div>
+    <p class="hug-text" id="hug-text">Hug delivered.</p>
+  </div>
+
+  <script src="script.js?v=5"></script>
+</body>
+</html>
