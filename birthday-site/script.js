@@ -11,7 +11,7 @@ const BIRTHDAY_CONFIG = {
   message: "Happy Birthday Love!",
 
   // Sign-off shown under the message. Leave "" to hide it.
-  signoff: "With all my love, always",
+  signoff: "Hoping to celebrate this day together for eternity.",
 
   // Optional photos. Drop image files into birthday-site/photos/ and list them
   // here like "photos/us.jpg", or paste full https:// image links.
