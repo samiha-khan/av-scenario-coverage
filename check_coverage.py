@@ -2,7 +2,7 @@ import json
 import sys
 from pathlib import Path
 
-from coverage import coverage_percentage
+from coverage import coverage_percentage, tway_coverage_report
 from generator import generate_scenarios
 
 BASELINE_PATH = Path(__file__).resolve().parent / "coverage_baseline.json"
@@ -17,35 +17,75 @@ REFERENCE_SEED = 1234
 REFERENCE_SCENARIO_COUNT = 50
 
 
-def load_baseline(baseline_path=BASELINE_PATH):
+# 3-way coverage is gated alongside pairwise because full pairwise coverage
+# can still leave three-factor combinations such as night + high_pedestrian
+# + residential completely untested.
+THREE_WAY_KEY = "three_way_coverage_percentage"
+
+
+def _read_baseline_file(baseline_path):
     path = Path(baseline_path)
     if not path.exists():
         return None
-    return json.loads(path.read_text())["coverage_percentage"]
+    return json.loads(path.read_text())
 
 
-def write_baseline(percentage, baseline_path=BASELINE_PATH):
-    Path(baseline_path).write_text(json.dumps({"coverage_percentage": percentage}, indent=2) + "\n")
+def load_baseline(baseline_path=BASELINE_PATH):
+    data = _read_baseline_file(baseline_path)
+    return None if data is None else data["coverage_percentage"]
+
+
+def load_three_way_baseline(baseline_path=BASELINE_PATH):
+    data = _read_baseline_file(baseline_path)
+    return None if data is None else data.get(THREE_WAY_KEY)
+
+
+def write_baseline(percentage, baseline_path=BASELINE_PATH, three_way_percentage=None):
+    data = {"coverage_percentage": percentage}
+    if three_way_percentage is not None:
+        data[THREE_WAY_KEY] = three_way_percentage
+    Path(baseline_path).write_text(json.dumps(data, indent=2) + "\n")
 
 
 def check_coverage(baseline_path=BASELINE_PATH, seed=REFERENCE_SEED, count=REFERENCE_SCENARIO_COUNT):
     scenarios = generate_scenarios(count, seed=seed)
     current = coverage_percentage(scenarios)
+    three_way_report = tway_coverage_report(scenarios, 3)
+    current_three_way = three_way_report["coverage_percentage"]
+    untested_three_way = len(three_way_report["zero_coverage"])
     baseline = load_baseline(baseline_path)
 
     if baseline is None:
         # First run with no tracked baseline yet: record one instead of
         # failing, since there's nothing to regress against.
-        write_baseline(current, baseline_path)
-        return 0, f"No baseline found. Recorded initial coverage baseline: {current:.2f}%"
-
-    if current < baseline:
-        return 1, (
-            f"Coverage regression: current coverage {current:.2f}% is below "
-            f"recorded baseline {baseline:.2f}%."
+        write_baseline(current, baseline_path, current_three_way)
+        return 0, (
+            f"No baseline found. Recorded initial coverage baseline: {current:.2f}% pairwise, "
+            f"{current_three_way:.2f}% 3-way."
         )
 
-    return 0, f"Coverage check passed: current coverage {current:.2f}% (baseline {baseline:.2f}%)."
+    three_way_baseline = load_three_way_baseline(baseline_path)
+    if three_way_baseline is None:
+        # Baseline predates 3-way gating: add the 3-way figure without
+        # touching the tracked pairwise number.
+        write_baseline(baseline, baseline_path, current_three_way)
+        three_way_baseline = current_three_way
+
+    failures = []
+    if current < baseline:
+        failures.append(f"pairwise coverage {current:.2f}% is below recorded baseline {baseline:.2f}%")
+    if current_three_way < three_way_baseline:
+        failures.append(
+            f"3-way coverage {current_three_way:.2f}% is below recorded baseline {three_way_baseline:.2f}%"
+        )
+    if failures:
+        return 1, "Coverage regression: " + "; ".join(failures) + "."
+
+    return 0, (
+        f"Coverage check passed: pairwise {current:.2f}% (baseline {baseline:.2f}%), "
+        f"3-way {current_three_way:.2f}% (baseline {three_way_baseline:.2f}%, "
+        f"{untested_three_way} three-way combinations untested)."
+    )
 
 
 def main():
