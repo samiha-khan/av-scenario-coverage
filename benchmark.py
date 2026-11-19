@@ -9,7 +9,13 @@ from itertools import product
 
 import failure_model
 import regression
-from coverage import field_pairs
+from coverage import (
+    coverage_percentage,
+    field_pairs,
+    fuzz_toward_underrepresented,
+    greedy_covering_array,
+    tway_coverage_percentage,
+)
 from generator import generate_scenarios
 from models import FIELD_ENUMS, SCHEMA_FIELDS, Scenario
 from prioritization import prioritize, thompson_prioritize
@@ -116,6 +122,43 @@ def regression_benchmark(seeds=range(20)):
               f"{pooled_hits / n:18.0%} {null_flags / n:30.2f}")
 
 
+def _matches(scenario, conditions):
+    data = scenario.as_dict()
+    return all(data[field] == value for field, value in conditions.items())
+
+
+def _test_set_strategies(seed, size=100):
+    rng = random.Random(seed)
+    random_set = generate_scenarios(size, seed=seed)
+    fuzz_base = generate_scenarios(size - 20, seed=seed)
+    return {
+        "random": random_set,
+        "random + pairwise fuzz": fuzz_base + fuzz_toward_underrepresented(fuzz_base, rng, n=20),
+        "3-way covering array": greedy_covering_array(3, random.Random(seed)),
+    }
+
+
+def coverage_benchmark(seeds=range(30)):
+    hard = [entry["conditions"] for entry in failure_model.HARD_COMBINATIONS]
+    small = [c for c in hard if len(c) <= 3]
+    print("\nTest set construction: ~100 scenarios, mean of 30 seeds")
+    print(f"{'strategy':24s} {'size':>5s} {'pairwise':>9s} {'3-way':>7s} "
+          f"{'<=3-factor hard combos all hit':>31s}")
+    totals = {}
+    for seed in seeds:
+        for name, scenarios in _test_set_strategies(seed).items():
+            row = totals.setdefault(name, [0, 0.0, 0.0, 0])
+            row[0] += len(scenarios)
+            row[1] += coverage_percentage(scenarios)
+            row[2] += tway_coverage_percentage(scenarios, 3)
+            row[3] += all(any(_matches(s, c) for s in scenarios) for c in small)
+    n = len(seeds)
+    for name, (size, pairwise, three_way, all_hit) in totals.items():
+        print(f"{name:24s} {size / n:5.1f} {pairwise / n:8.1f}% {three_way / n:6.1f}% "
+              f"{all_hit:>24d} / {n} seeds")
+
+
 if __name__ == "__main__":
     discovery_benchmark()
     regression_benchmark()
+    coverage_benchmark()
