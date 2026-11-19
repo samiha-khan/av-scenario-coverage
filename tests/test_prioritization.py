@@ -1,9 +1,15 @@
+import random
+
+import pytest
+
 import failure_model
+import prioritization
 from prioritization import (
     rarity,
     historical_failure_rate,
     priority_score,
     prioritize,
+    thompson_prioritize,
 )
 
 
@@ -32,11 +38,20 @@ def test_rarity_is_bounded_by_the_least_seen_pairwise_combination(make_scenario)
     assert partial_rarity > full_rarity
 
 
-def test_historical_failure_rate_falls_back_to_failure_model_when_no_history(make_scenario):
+def test_historical_failure_rate_is_the_declared_prior_when_no_history(make_scenario):
     scenario = make_scenario()
-    assert historical_failure_rate(scenario, []) == failure_model.base_failure_probability(
-        scenario
-    )
+    assert historical_failure_rate(scenario, []) == pytest.approx(prioritization.PRIOR_FAILURE_RATE)
+
+
+def test_historical_failure_rate_never_consults_the_ground_truth_model(make_scenario, monkeypatch):
+    def forbidden(_scenario):
+        raise AssertionError("prioritization must not read the synthetic ground truth")
+
+    monkeypatch.setattr(failure_model, "base_failure_probability", forbidden)
+    hard = make_scenario(lighting="night", agent_mix="high_cyclist")
+    historical_failure_rate(hard, [])
+    prioritize([hard], [], [])
+    thompson_prioritize([hard], [], random.Random(0))
 
 
 def test_historical_failure_rate_reflects_recorded_outcomes_for_matching_scenarios(
@@ -49,7 +64,17 @@ def test_historical_failure_rate_reflects_recorded_outcomes_for_matching_scenari
         (scenario, True),
         (scenario, False),
     ]
-    assert historical_failure_rate(scenario, run_records) == 0.75
+    # Beta(0.5, 4.5) prior updated with 3 failures in 4 runs, identical for
+    # every one of the scenario's pairwise combinations.
+    alpha = prioritization.PRIOR_FAILURE_RATE * prioritization.PRIOR_STRENGTH + 3
+    beta = (1 - prioritization.PRIOR_FAILURE_RATE) * prioritization.PRIOR_STRENGTH + 1
+    assert historical_failure_rate(scenario, run_records) == pytest.approx(alpha / (alpha + beta))
+
+
+def test_historical_failure_rate_converges_to_observed_rate_with_more_history(make_scenario):
+    scenario = make_scenario()
+    run_records = [(scenario, False)] * 300 + [(scenario, True)] * 100
+    assert historical_failure_rate(scenario, run_records) == pytest.approx(0.75, abs=0.01)
 
 
 def test_historical_failure_rate_ignores_unrelated_run_records(make_scenario):
@@ -64,10 +89,10 @@ def test_historical_failure_rate_ignores_unrelated_run_records(make_scenario):
     )
     run_records = [(unrelated, False), (unrelated, False), (unrelated, False)]
     # Every field differs from scenario's defaults, so no pairwise
-    # combination overlaps and this should fall back to the synthetic
-    # baseline rather than picking up unrelated's high failure rate.
-    assert historical_failure_rate(scenario, run_records) == failure_model.base_failure_probability(
-        scenario
+    # combination overlaps and this should stay at the prior rather than
+    # picking up unrelated's high failure rate.
+    assert historical_failure_rate(scenario, run_records) == pytest.approx(
+        prioritization.PRIOR_FAILURE_RATE
     )
 
 
@@ -96,3 +121,47 @@ def test_prioritize_returns_all_candidates(make_scenario):
     candidates = [make_scenario(), make_scenario(weather="rain")]
     ranked = prioritize(candidates, [], [])
     assert {candidate for candidate, _ in ranked} == set(candidates)
+
+
+def test_thompson_prioritize_returns_all_candidates_sorted(make_scenario):
+    candidates = [make_scenario(), make_scenario(weather="rain"), make_scenario(weather="fog")]
+    ranked = thompson_prioritize(candidates, [], random.Random(1))
+    assert {candidate for candidate, _ in ranked} == set(candidates)
+    scores = [score for _, score in ranked]
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_thompson_prioritize_is_reproducible_for_a_given_seed(make_scenario):
+    candidates = [make_scenario(weather=w) for w in ("clear", "rain", "fog", "snow")]
+    first = thompson_prioritize(candidates, [], random.Random(42))
+    second = thompson_prioritize(candidates, [], random.Random(42))
+    assert first == second
+
+
+def test_thompson_prioritize_favours_combinations_with_failure_history(make_scenario):
+    failing = make_scenario(lighting="night", agent_mix="high_cyclist")
+    passing = make_scenario()
+    run_records = [(failing, False)] * 20 + [(passing, True)] * 20
+    rng = random.Random(0)
+    wins = sum(
+        thompson_prioritize([failing, passing], run_records, rng)[0][0] == failing
+        for _ in range(200)
+    )
+    assert wins > 190
+
+
+def test_thompson_prioritize_still_explores_unseen_combinations(make_scenario):
+    tested = make_scenario()
+    unseen = make_scenario(
+        weather="snow", lighting="night", agent_mix="high_pedestrian",
+        maneuver_type="merge", road_type="highway", ego_speed_bucket="high",
+    )
+    # tested has a modest 10% failure rate, the same as the prior mean, so
+    # the unseen candidate's wider posterior should win a fair share of draws.
+    run_records = [(tested, False)] * 10 + [(tested, True)] * 90
+    rng = random.Random(0)
+    unseen_wins = sum(
+        thompson_prioritize([tested, unseen], run_records, rng)[0][0] == unseen
+        for _ in range(400)
+    )
+    assert 40 < unseen_wins < 360
