@@ -9,8 +9,8 @@ Scenarios are represented as structured parameter vectors, not images or simulat
 - Generates scenario vectors from a fixed schema (weather, lighting, agent mix, maneuver type, road type, ego speed)
 - Measures combinatorial pairwise coverage across the scenario set
 - Generates new candidate scenarios targeted at undercovered parameter combinations (fuzzing)
-- Scores untested scenarios by rarity and historical failure rate, to prioritize what to run next
-- Tracks pass/fail outcomes per scenario over time in SQLite, and flags scenarios that regressed
+- Ranks untested scenarios with a Bayesian failure-rate model (deterministic rarity score, or Thompson sampling for adaptive testing), to prioritize what to run next
+- Tracks pass/fail outcomes per scenario over time in SQLite, and flags statistically significant failure-rate regressions per scenario and per parameter combination
 - Gates CI on a pairwise coverage baseline
 
 ## Schema
@@ -40,9 +40,22 @@ CI gates on a fixed reference set of 50 scenarios (seed 1234), which lands at 95
 
 ## Prioritization
 
-Score = rarity of the scenario's parameter combination in the existing set x historical failure rate for scenarios sharing those combinations. No learned model, this is a heuristic baseline that stays explainable.
+Each pairwise parameter combination gets a Beta posterior over its failure rate. The prior is a declared assumption (mean 10%, worth 5 runs of evidence, set in prioritization.py) that run history quickly overrides. The prioritizer never reads failure_model: that is the ground truth the prioritizer is scored against, and a real system would not have it.
 
-If a scenario's combination has no run history yet, historical failure rate falls back to the synthetic model's base probability rather than assuming 0.
+Two rankings are available:
+
+- prioritize: deterministic score = rarity of the scenario's least-seen pairwise combination x mean posterior failure rate across its pairs. Explainable, good for a fixed review list.
+- thompson_prioritize: draws one failure rate from each pair's posterior and ranks by the average draw. Poorly tested combinations have wide posteriors and get explored; combinations with an established high failure rate get exploited. Re-rank after every batch of runs. This is the adaptive sampling idea behind recent rare-failure discovery work for autonomous driving (Sinha et al., "Rate-Informed Discovery via Bayesian Adaptive Multifidelity Sampling", CoRL 2024; Parashar et al., "Cost-aware Discovery of Contextual Failures using Bayesian Active Learning", CoRL 2025), reduced to a pairwise Beta model.
+
+Benchmark: 300 runs in batches of 20, re-ranking a fresh pool of 400 candidates after each batch, mean of 12 seeds (python benchmark.py):
+
+| strategy | failures found | distinct failing scenarios | pairwise combinations among failures |
+|---|---|---|---|
+| random | 38.6 | 37.3 | 169.4 / 200 |
+| rarity x failure rate | 66.1 | 61.9 | 173.8 / 200 |
+| thompson sampling | 109.0 | 72.0 | 137.8 / 200 |
+
+Thompson sampling finds about 1.6x the failures of the deterministic score and 2.8x random. The trade-off is that it concentrates on the conditions where failures occur, so its failures span fewer pairwise combinations; use the deterministic score, or mix in random candidates, when breadth matters more than failure yield.
 
 ## Regression tracking
 
@@ -61,7 +74,7 @@ Simulated on 80 scenarios over 20 seeds, with a +30 point failure rate increase 
 |---|---|---|---|---|
 | 5  | 13.8 | 0%  | 40% of builds | 0 |
 | 10 | 18.1 | 0%  | 90% of builds | 0 |
-| 30 | 32.8 | 42% | n/a | n/a |
+| 30 | 32.8 | 42% | 100% of builds | 0 |
 
 When the pooled test fires, the top-ranked combination involves rain in 18 of 20 builds. Combinations that merely share scenarios with the rain set (for example urban + low speed) can also be flagged, since their pooled rate genuinely rose; read results from the top.
 
@@ -72,9 +85,13 @@ The original flip queries are kept as an audit trail:
 
 ## Tests
 
-82 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
+88 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
 
 pytest
+
+The numbers in the prioritization and regression sections come from:
+
+python benchmark.py
 
 ## Structure
 
@@ -82,6 +99,7 @@ models.py           scenario schema and hashing
 generator.py         scenario generation, weighted or uniform sampling
 coverage.py          pairwise coverage measurement and fuzzing
 failure_model.py      synthetic ground truth failure function
-prioritization.py     rarity x failure rate scoring
+prioritization.py     Bayesian rarity x failure rate scoring and Thompson sampling
 regression.py        SQLite run tracking and regression queries
 check_coverage.py     CI coverage gate against a tracked baseline
+benchmark.py          reproducible benchmarks behind the README numbers
