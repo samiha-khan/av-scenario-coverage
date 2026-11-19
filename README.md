@@ -46,16 +46,33 @@ If a scenario's combination has no run history yet, historical failure rate fall
 
 ## Regression tracking
 
-Every run of every scenario gets a row in SQLite, keyed on a hash of the scenario vector. Two queries:
+Every run of every scenario gets a row in SQLite, keyed on a hash of the scenario vector.
+
+Scenarios fail at a nonzero rate even when nothing about the system changes, so a single pass followed by a single fail is not evidence of a regression. Running the same 80 scenarios twice with no change at all produces about 6.5 pass to fail flips on average. Simply ignoring noisy scenarios is not the answer either, because the inherently hard scenarios are exactly the noisy ones, and in practice that is where real regressions hide (Haben et al., "The Importance of Discerning Flaky from Fault-triggering Test Failures: A Case Study on the Chromium CI", 2023, found that ignoring failures of flaky tests would have missed about 76% of regression faults).
+
+So detection compares failure rates instead of individual outcomes. Runs are split at a cutoff timestamp (for example, when a new build was deployed):
+
+- significant_regressions: per scenario, one-sided Fisher exact test of whether the failure rate after the cutoff is higher than before it, with Benjamini-Hochberg correction across scenarios so that a large suite does not flag noise on every build
+- significant_combination_regressions: the same test, but pooling all runs of all scenarios that share a pairwise parameter combination. Regressions usually follow operating conditions rather than one exact scenario vector, so pooling gives much more statistical power
+
+Simulated on 80 scenarios over 20 seeds, with a +30 point failure rate increase injected into every rain scenario:
+
+| runs per scenario per window | old most_recent_regressions false flags per build | per-scenario test detects | pooled test flags rain | pooled false flags when nothing changed |
+|---|---|---|---|---|
+| 5  | 13.8 | 0%  | 40% of builds | 0 |
+| 10 | 18.1 | 0%  | 90% of builds | 0 |
+| 30 | 32.8 | 42% | n/a | n/a |
+
+When the pooled test fires, the top-ranked combination involves rain in 18 of 20 builds. Combinations that merely share scenarios with the rain set (for example urban + low speed) can also be flagged, since their pooled rate genuinely rose; read results from the top.
+
+The original flip queries are kept as an audit trail:
 
 - find_regressions: any scenario that passed at some point and later failed
-- most_recent_regressions: stricter, only scenarios whose latest run failed with at least one earlier pass on record, this is what CI would gate a specific commit on
-
-Across a two-run test (80 scenarios, evaluated twice), 4 scenarios flipped from pass to fail.
+- most_recent_regressions: only scenarios whose latest run failed with at least one earlier pass on record
 
 ## Tests
 
-69 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
+82 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
 
 pytest
 
