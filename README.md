@@ -11,7 +11,7 @@ Scenarios are represented as structured parameter vectors, not images or simulat
 - Generates new candidate scenarios targeted at undercovered parameter combinations (fuzzing), or builds a full t-way covering array
 - Ranks untested scenarios with a Bayesian failure-rate model (deterministic rarity score, or Thompson sampling for adaptive testing), to prioritize what to run next
 - Tracks pass/fail outcomes per scenario over time in SQLite, and flags statistically significant failure-rate regressions per scenario and per parameter combination
-- Gates CI on pairwise and 3-way coverage baselines
+- Gates CI on the pairwise and 3-way coverage of a committed scenario suite
 
 ## Schema
 
@@ -29,6 +29,8 @@ ego_speed_bucket  low, medium, high
 There's no real classifier behind this project, on purpose, it's decoupled from perception-validation-suite so the coverage and prioritization logic can be tested against known ground truth instead of a black box.
 
 Failure is a synthetic function: a fixed table of parameter combinations flagged as inherently hard (night + fog + high_cyclist + merge, snow + highway + high speed, and four others), each with a base failure probability, plus gaussian noise so outcomes aren't deterministic. Scenarios that don't match any hard combination default to a 2% baseline failure rate.
+
+One caveat applies to every benchmark in this README: the failure model defines hard cases as combinations of two to four parameter values, which is exactly the structure that combinatorial coverage and pairwise failure-rate models are built around. The benchmarks show the methods behave as designed against a known ground truth; they are not evidence of the same gains on a real driving stack, where failures can depend on continuous parameters and interactions this schema does not capture.
 
 ## Coverage and fuzzing
 
@@ -50,7 +52,15 @@ Comparison at roughly equal size, 30 seeds (python benchmark.py):
 
 Fuzzing to 100% pairwise coverage does not help with 3-way gaps and, in this benchmark, made them slightly more likely. The covering array guarantees every combination of up to three factors at the same budget. The two hard combinations that need four specific fields (for example night + fog + high_cyclist + merge) are still only hit by chance; guaranteeing those takes a 4-way covering array of about 320 scenarios.
 
-CI gates on a fixed reference set of 50 scenarios (seed 1234), which lands at 95.5% pairwise and 62.9% 3-way coverage, with 357 three-way combinations untested. A build fails if a change drops either number.
+## CI coverage gate
+
+The suite CI measures is a committed file, scenarios/reference_suite.json, standing in for the set of scenarios a team actually runs. It currently holds 50 scenarios and covers 95.5% pairwise and 62.9% 3-way, with 357 three-way combinations untested. A build fails if a change to the suite, such as removing or editing scenarios, drops either number below the tracked baseline in coverage_baseline.json, and the failure message names untested combinations so the gap is actionable.
+
+To see what it would take to close the gaps:
+
+python check_coverage.py --suggest 3
+
+prints the scenarios (as JSON) that would bring the suite to full 3-way coverage; for the current suite that is 60 more. After adding scenarios on purpose, delete coverage_baseline.json and rerun check_coverage.py to record the higher baseline.
 
 ## Prioritization
 
@@ -99,7 +109,7 @@ The original flip queries are kept as an audit trail:
 
 ## Tests
 
-113 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
+120 tests across models, generator, coverage, failure model, prioritization, regression, and the CI coverage check. Run with:
 
 pytest
 
@@ -115,5 +125,7 @@ coverage.py          pairwise and t-way coverage, fuzzing, covering arrays
 failure_model.py      synthetic ground truth failure function
 prioritization.py     Bayesian rarity x failure rate scoring and Thompson sampling
 regression.py        SQLite run tracking and regression queries
-check_coverage.py     CI coverage gate against tracked pairwise and 3-way baselines
+check_coverage.py     CI coverage gate on the committed suite, plus --suggest to close gaps
+suite.py              load and save scenario suites as JSON
+scenarios/            the committed reference suite CI gates on
 benchmark.py          reproducible benchmarks behind the README numbers
