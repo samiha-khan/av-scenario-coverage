@@ -1,0 +1,402 @@
+[
+  {
+    "weather": "snow",
+    "lighting": "dusk",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "stop",
+    "road_type": "residential",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "fog",
+    "lighting": "day",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "lane_change",
+    "road_type": "highway",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "rain",
+    "lighting": "dusk",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "lane_change",
+    "road_type": "highway",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "fog",
+    "lighting": "day",
+    "agent_mix": "high_cyclist",
+    "maneuver_type": "turn",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "rain",
+    "lighting": "dusk",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "merge",
+    "road_type": "highway",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "snow",
+    "lighting": "night",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "turn",
+    "road_type": "highway",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "snow",
+    "lighting": "day",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "stop",
+    "road_type": "highway",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "snow",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "snow",
+    "lighting": "day",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "fog",
+    "lighting": "night",
+    "agent_mix": "high_cyclist",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "rain",
+    "lighting": "night",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "lane_change",
+    "road_type": "residential",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "clear",
+    "lighting": "night",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "rain",
+    "lighting": "day",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "snow",
+    "lighting": "night",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "stop",
+    "road_type": "highway",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "fog",
+    "lighting": "night",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "snow",
+    "lighting": "dusk",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "snow",
+    "lighting": "day",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "lane_change",
+    "road_type": "residential",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "snow",
+    "lighting": "day",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "snow",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "rain",
+    "lighting": "night",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "stop",
+    "road_type": "highway",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "rain",
+    "lighting": "night",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "fog",
+    "lighting": "dusk",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "clear",
+    "lighting": "day",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "turn",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "rain",
+    "lighting": "dusk",
+    "agent_mix": "high_cyclist",
+    "maneuver_type": "turn",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "snow",
+    "lighting": "night",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "lane_change",
+    "road_type": "urban",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "clear",
+    "lighting": "day",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "merge",
+    "road_type": "residential",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "snow",
+    "lighting": "day",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "clear",
+    "lighting": "night",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "merge",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "rain",
+    "lighting": "day",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "snow",
+    "lighting": "day",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "lane_change",
+    "road_type": "highway",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "snow",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "merge",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "clear",
+    "lighting": "night",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "merge",
+    "road_type": "residential",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "fog",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "merge",
+    "road_type": "highway",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "stop",
+    "road_type": "highway",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "fog",
+    "lighting": "day",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "lane_change",
+    "road_type": "highway",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "fog",
+    "lighting": "night",
+    "agent_mix": "emergency_vehicle_present",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "fog",
+    "lighting": "dusk",
+    "agent_mix": "high_cyclist",
+    "maneuver_type": "turn",
+    "road_type": "residential",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "fog",
+    "lighting": "night",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "lane_change",
+    "road_type": "highway",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "rain",
+    "lighting": "night",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "turn",
+    "road_type": "urban",
+    "ego_speed_bucket": "low"
+  },
+  {
+    "weather": "rain",
+    "lighting": "day",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "stop",
+    "road_type": "highway",
+    "ego_speed_bucket": "high"
+  },
+  {
+    "weather": "fog",
+    "lighting": "night",
+    "agent_mix": "high_pedestrian",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "clear",
+    "lighting": "dusk",
+    "agent_mix": "mixed_vru",
+    "maneuver_type": "lane_change",
+    "road_type": "residential",
+    "ego_speed_bucket": "medium"
+  },
+  {
+    "weather": "fog",
+    "lighting": "dusk",
+    "agent_mix": "mostly_vehicles",
+    "maneuver_type": "stop",
+    "road_type": "urban",
+    "ego_speed_bucket": "low"
+  }
+]
